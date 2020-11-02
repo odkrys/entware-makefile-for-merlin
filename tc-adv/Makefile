@@ -70,6 +70,11 @@ define Build/Compile
 	+$(MAKE_VARS) $(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) $(MAKE_FLAGS)
 endef
 
+define Build/Prepare
+	$(call Build/Prepare/Default)
+	$(CP) $(STAGING_DIR)/opt/lib/libintl-full/lib/libintl.so* $(STAGING_DIR)/opt/lib
+endef
+
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/opt/include
 	$(CP) $(PKG_BUILD_DIR)/include/libnetlink.h $(1)/opt/include/
