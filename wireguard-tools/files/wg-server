@@ -1,0 +1,36 @@
+#!/bin/sh
+
+modprobe xt_set
+insmod /opt/lib/modules/wireguard
+
+ip link del dev wg1 2>/dev/null
+ip link add dev wg1 type wireguard
+wg setconf wg1 /opt/etc/wireguard/wg1.conf
+ip address add dev wg1 $Subnet
+ip link set up dev wg1
+ifconfig wg1 mtu 1380
+ifconfig wg1 txqueuelen 1000
+
+iptables -t mangle -D PREROUTING -i wg1 -j MARK --set-xmark 0x01/0x7 2>/dev/null
+iptables -t mangle -D FORWARD -o wg1 -j MARK --set-xmark 0x01/0x7 2>/dev/null
+iptables -t mangle -D FORWARD -i wg1 -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
+iptables -t mangle -D FORWARD -o wg1 -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null
+
+iptables -D INPUT -p udp --dport $wgport -j ACCEPT 2>/dev/null
+iptables -D INPUT -i wg1 -j ACCEPT 2>/dev/null
+iptables -D FORWARD -i wg1 -j ACCEPT 2>/dev/null
+iptables -D FORWARD -o wg1 -j ACCEPT 2>/dev/null
+iptables -D OUTPUT -o wg1 -j ACCEPT 2>/dev/null
+iptables -t nat -D PREROUTING -p udp --dport $wgport -j ACCEPT 2>/dev/null
+
+iptables -t mangle -I FORWARD -o wg1 -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+iptables -t mangle -I FORWARD -i wg1 -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+iptables -t mangle -I FORWARD -o wg1 -j MARK --set-xmark 0x01/0x7
+iptables -t mangle -I PREROUTING -i wg1 -j MARK --set-xmark 0x01/0x7
+
+iptables -I INPUT -p udp --dport $wgport -j ACCEPT
+iptables -I INPUT -i wg1 -j ACCEPT
+iptables -I FORWARD -i wg1 -j ACCEPT
+iptables -I FORWARD -o wg1 -j ACCEPT
+iptables -I OUTPUT -o wg1 -j ACCEPT
+iptables -t nat -I PREROUTING -p udp --dport $wgport -j ACCEPT
