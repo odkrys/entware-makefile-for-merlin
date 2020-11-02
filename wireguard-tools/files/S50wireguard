@@ -1,0 +1,49 @@
+#!/bin/sh
+
+PATH=/opt/sbin:/opt/bin:/opt/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+Mode=client   #server or client
+
+#server
+export Subnet=   #e.g.)10.50.50.1/24
+export wgport=
+
+#client
+export LocalIP=   #e.g.)10.50.50.2
+Route=default   #default or policy
+export wgdns=
+export Nipset=wgvpn
+
+case $1 in
+	start)
+	logger "Starting WireGuard service."
+	if [ "$Mode" == "server" ] ; then
+		/opt/etc/wireguard/wg-server
+		
+		elif [ "$Mode" == "client" ] && [ "$Route" != "policy" ] ; then
+			/opt/etc/wireguard/wg-up
+		else	
+			/opt/etc/wireguard/wg-policy	
+	fi
+	;;
+	stop)
+		logger "Stopping WireGuard service."
+		/opt/etc/wireguard/wg-down
+	;;
+	restart)
+	logger "Restarting WireGuard service."
+	/opt/etc/wireguard/wg-down
+	sleep 2
+	if [ "$Mode" == "server" ] ; then
+		/opt/etc/wireguard/wg-server
+
+		elif [ "$Mode" == "client" ] && [ "$Route" != "policy" ] ; then
+			/opt/etc/wireguard/wg-up
+		else
+			/opt/etc/wireguard/wg-policy
+	fi
+	;;
+	*)
+	echo "Usage: $0 {start|stop|restart}"
+	;;
+esac
