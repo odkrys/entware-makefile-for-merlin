@@ -6,6 +6,7 @@ apt-get install git-core git build-essential libssl-dev libncurses5-dev unzip ga
 
 
 useradd -d /USERNAME -m -s /bin/bash USERNAME
+
 passwd USERNAME
 
 nano /etc/sudoers
