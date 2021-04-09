@@ -10,11 +10,11 @@ passwd USERNAME
 
 nano /etc/sudoers
 
--------------------------------------------------
+```
 # Allow members of group sudo to execute any command
 %sudo ALL=(ALL:ALL) ALL
 USERNAME ALL=(ALL) ALL
--------------------------------------------------
+```
 
 chmod u-w /etc/sudoers
 
