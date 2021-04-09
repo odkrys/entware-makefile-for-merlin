@@ -22,15 +22,19 @@ chmod u-w /etc/sudoers
 su - USERNAME
 
 cd /USERNAME
+
 git clone https://github.com/Entware/Entware.git
 
 cd Entware
+
 cp configs/aarch64-3.10.config .config
 
 make package/symlinks
 
 make tools/install
+
 make toolchain/install
+
 make target/compile
 
 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
