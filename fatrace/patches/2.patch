@@ -1,0 +1,25 @@
+--- a/fatrace.c	2019-07-07 12:59:55.955037605 +0000
++++ b/fatrace.c	2019-07-07 13:47:14.000000000 +0000
+@@ -24,6 +24,7 @@
+ #include <stdint.h>
+ #include <unistd.h>
+ #include <string.h>
++#include <syslog.h>
+ #include <fcntl.h>
+ #include <limits.h>
+ #include <dirent.h>
+@@ -144,11 +144,11 @@
+     /* print event */
+     if (option_timestamp == 1) {
+         strftime (printbuf, sizeof (printbuf), "%H:%M:%S", localtime (&event_time->tv_sec));
+-        printf ("%s.%06li ", printbuf, event_time->tv_usec);
++        syslog ( LOG_INFO, "%s.%06li ", printbuf, event_time->tv_usec);
+     } else if (option_timestamp == 2) {
+-        printf ("%li.%06li ", event_time->tv_sec, event_time->tv_usec);
++        syslog ( LOG_INFO, "%li.%06li ", event_time->tv_sec, event_time->tv_usec);
+     }
+-    printf ("%s(%i): %s %s\n", procname, data->pid, mask2str (data->mask), pathname);
++    syslog ( LOG_INFO, "%s(%i): %s %s\n", procname, data->pid, mask2str (data->mask), pathname);
+ }
+ 
+ /**

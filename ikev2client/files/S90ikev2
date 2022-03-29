@@ -1,0 +1,60 @@
+#!/bin/sh
+
+PATH=/opt/sbin:/opt/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+export USER=$(nvram get http_username)
+
+export CAPATH=
+export HOST=
+export ID=
+export PASSWORD=
+
+#For Policy Based Routing
+#sed -i "s|load = yes|load = no|g" /etc/strongswan.d/charon/resolve.conf
+
+
+start() {
+	cp /opt/etc/ikev2/* /etc
+	echo $USER | sed -i "s|USER|$USER|g" /etc/strongswan.conf
+	echo $CAPATH | sed -i "s|CAPATH|$CAPATH|g" /etc/ipsec.conf
+	echo $HOST | sed -i "s|HOST|$HOST|g" /etc/ipsec.conf
+	echo $ID | sed -i "s|ID|$ID|g" /etc/ipsec.conf
+	echo $ID | sed -i "s|ID|$ID|g" /etc/ipsec.secrets
+	echo $PASSWORD | sed -i "s|PASSWORD|$PASSWORD|g" /etc/ipsec.secrets
+
+	/usr/sbin/ipsec start
+	sleep 1
+	/usr/sbin/ipsec up ikev2
+}
+
+stop() {
+	/usr/sbin/ipsec stop
+	sed -i "s|load = no|load = yes|g" /etc/strongswan.d/charon/resolve.conf 2>/dev/null
+}
+
+restart() {
+	/usr/sbin/ipsec restart
+}
+
+reload() {
+	/usr/sbin/ipsec update
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		restart
+		;;
+	reload)
+		reload
+		;;
+	*)
+		echo $"Usage: $0 {start|stop|restart|reload]"
+		exit 1
+esac
+exit 0

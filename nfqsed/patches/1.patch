@@ -1,0 +1,19 @@
+--- /Makefile	2021-06-30 02:50:03.000000000 +0000
++++ /Makefile	2021-06-30 02:51:58.000000000 +0000
+@@ -1,10 +1,11 @@
+-all: nfqsed
++CC ?= gcc
++LIBS = -lnetfilter_queue
++SRC_FILES = *.c
+ 
+-nfqsed: nfqsed.o
+-	gcc nfqsed.o -o nfqsed -lnetfilter_queue
++all: nfqsed
+ 
+-nfqsed.o: nfqsed.c
+-	gcc -Wall -c nfqsed.c
++nfqsed: $(SRC_FILES)
++	$(CC) -s $(CFLAGS) -o $@ $(SRC_FILES) $(LDFLAGS) $(LIBS)
+ 
+ clean:
+ 	rm -f nfqsed.o nfqsed

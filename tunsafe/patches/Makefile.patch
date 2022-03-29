@@ -1,0 +1,42 @@
+--- a/Makefile	2019-01-11 07:38:06.713591365 +0000
++++ b/Makefile	2019-01-11 07:36:53.000000000 +0000
+@@ -1,23 +1,19 @@
+-UNAME := $(shell uname)
+-
+-.PHONY: tunsafe
+-
+-ifeq ($(UNAME), Linux)
+-tunsafe:
+-	sh ./build_linux.sh
+-endif
+-
+-ifeq ($(UNAME), FreeBSD)
+-tunsafe:
+-	sh ./build_freebsd.sh
+-endif
+-
+-ifeq ($(UNAME), Darwin)
+-tunsafe:
+-	sh ./build_osx.sh
++CXX ?= g++
++CXXFLAGS ?= -mfpu=neon  -I . -g -O2 -DNDEBUG -DWITH_NETWORK_BSD=1 -fno-omit-frame-pointer -march=armv7-a -mthumb -std=c++11 -pthread
++LIBS = -lrt
++
++ifeq ($(ARCH),arm)
++SRC_FILES = tunsafe_amalgam.cpp crypto/chacha20/chacha20-arm-linux.S crypto/poly1305/poly1305-arm-linux.S
++else ifeq ($(ARCH),aarch64)
++SRC_FILES = tunsafe_amalgam.cpp crypto/chacha20/chacha20-arm64-ios.S crypto/poly1305/poly1305-arm64-ios.S
++else
++$(error Please add support for your architecture.)
+ endif
+ 
+-install:
+-	cp tunsafe /usr/bin
++all: tunsafe
+ 
++tunsafe: $(SRC_FILES)
++	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
+ 
++clean:
++	rm -f tunsafe
+\ No newline at end of file

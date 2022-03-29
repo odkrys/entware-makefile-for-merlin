@@ -1,0 +1,113 @@
+--- a/tunsafe_bsd.cpp	2019-01-10 17:49:51.000000000 +0000
++++ b/tunsafe_bsd.cpp	2019-01-10 17:46:32.000000000 +0000
+@@ -36,7 +36,7 @@
+ #include <net/if_tun.h>
+ #include <net/if_dl.h>
+ #elif defined(OS_LINUX)
+-#include <linux/if.h>
++/* #include <linux/if.h> */
+ #include <linux/if_tun.h>
+ #include <sys/prctl.h>
+ #include <linux/rtnetlink.h>
+@@ -367,16 +367,16 @@
+   const char *cmd = remove ? "del" : "add";
+   const char *proto = (cd.family == AF_INET) ? NULL : "-6";
+   if (cd.dev.empty()) {
+-    RunCommand("/sbin/ip %s route %s %s via %s", proto, cmd, buf1, buf2);
++    RunCommand("/opt/sbin/ip %s route %s %s via %s", proto, cmd, buf1, buf2);
+   } else {
+-    RunCommand("/sbin/ip %s route %s %s dev %s", proto, cmd, buf1, cd.dev.c_str());
++    RunCommand("/opt/sbin/ip %s route %s %s dev %s", proto, cmd, buf1, cd.dev.c_str());
+   }
+ #elif defined(OS_MACOSX) || defined(OS_FREEBSD)
+   const char *cmd = remove ? "delete" : "add";
+   if (cd.family == AF_INET) {
+-    RunCommand("/sbin/route -q %s %s %s", cmd, buf1, buf2);
++    RunCommand("/opt/sbin/route -q %s %s %s", cmd, buf1, buf2);
+   } else {
+-    RunCommand("/sbin/route -q %s -inet6 %s %s", cmd, buf1, buf2);
++    RunCommand("/opt/sbin/route -q %s -inet6 %s %s", cmd, buf1, buf2);
+   }
+ #endif
+ }
+@@ -436,19 +436,19 @@
+   addresses_to_remove_ = config.addresses;
+ 
+ #if defined(OS_LINUX)
+-  RunCommand("/sbin/ip address flush dev %s scope global", devname_);
++  RunCommand("/opt/sbin/ip address flush dev %s scope global", devname_);
+   for(const WgCidrAddr &a : config.addresses)
+-    RunCommand("/sbin/ip address add dev %s %s", devname_, print_ip_prefix(buf, a.size == 32 ? AF_INET : AF_INET6, a.addr, a.cidr));
+-  RunCommand("/sbin/ip link set dev %s mtu %d up", devname_, config.mtu);
++    RunCommand("/opt/sbin/ip address add dev %s %s", devname_, print_ip_prefix(buf, a.size == 32 ? AF_INET : AF_INET6, a.addr, a.cidr));
++  RunCommand("/opt/sbin/ip link set dev %s mtu %d up", devname_, config.mtu);
+ #else
+   for(const WgCidrAddr &a : config.addresses) {
+     if (a.size == 32) {
+-      RunCommand("/sbin/ifconfig %s inet %s %s add", devname_, print_ip_prefix(buf, AF_INET, a.addr, a.cidr), print_ip_prefix(buf2, AF_INET, a.addr, -1));
++      RunCommand("/opt/sbin/ifconfig %s inet %s %s add", devname_, print_ip_prefix(buf, AF_INET, a.addr, a.cidr), print_ip_prefix(buf2, AF_INET, a.addr, -1));
+     } else {
+-      RunCommand("/sbin/ifconfig %s inet6 %s add", devname_, print_ip_prefix(buf, AF_INET6, a.addr, a.cidr));
++      RunCommand("/opt/sbin/ifconfig %s inet6 %s add", devname_, print_ip_prefix(buf, AF_INET6, a.addr, a.cidr));
+     }
+   }
+-  RunCommand("/sbin/ifconfig %s mtu %d up", devname_, config.mtu);
++  RunCommand("/opt/sbin/ifconfig %s mtu %d up", devname_, config.mtu);
+ #endif
+ 
+ 
+@@ -515,13 +515,13 @@
+ 
+ #if defined(OS_LINUX)
+   for(const WgCidrAddr &a : addresses_to_remove_)
+-    RunCommand("/sbin/ip address del dev %s %s", devname_, print_ip_prefix(buf, a.size == 32 ? AF_INET : AF_INET6, a.addr, a.cidr));
++    RunCommand("/opt/sbin/ip address del dev %s %s", devname_, print_ip_prefix(buf, a.size == 32 ? AF_INET : AF_INET6, a.addr, a.cidr));
+ #else
+   for(const WgCidrAddr &a : addresses_to_remove_) {
+     if (a.size == 32) {
+-      RunCommand("/sbin/ifconfig %s inet %s -alias", devname_, print_ip_prefix(buf, AF_INET, a.addr, -1));
++      RunCommand("/opt/sbin/ifconfig %s inet %s -alias", devname_, print_ip_prefix(buf, AF_INET, a.addr, -1));
+     } else {
+-      RunCommand("/sbin/ifconfig %s inet6 %s -alias", devname_, print_ip_prefix(buf, AF_INET6, a.addr, -1));
++      RunCommand("/opt/sbin/ifconfig %s inet6 %s -alias", devname_, print_ip_prefix(buf, AF_INET6, a.addr, -1));
+     }
+   }
+ #endif
+@@ -566,11 +566,11 @@
+     *g_signal_catcher->sigalarm_flag_ = true;
+ }
+ 
+-void SignalCatcher::SigInt(int sig) {
++void SignalCatcher::SigTerm(int sig) {
+   if (did_ctrlc)
+     exit(1);
+   did_ctrlc = true;
+-  write(1, "Ctrl-C detected. Exiting. Press again to force quit.\n", sizeof("Ctrl-C detected. Exiting. Press again to force quit.\n") - 1);
++  write(1, "Killall detected. Exiting. Press again to force quit.\n", sizeof("Killall detected. Exiting. Press again to force quit.\n") - 1);
+   // todo: fix signal safety?
+   if (g_signal_catcher)
+     *g_signal_catcher->exit_flag_ = true;
+@@ -596,9 +596,9 @@
+ 
+   {
+     struct sigaction act = {0};
+-    act.sa_handler = SigInt;
+-    if (sigaction(SIGINT, &act, NULL) < 0) {
+-      RERROR("Unable to install SIGINT handler.");
++    act.sa_handler = SigTerm;
++    if (sigaction(SIGTERM, &act, NULL) < 0) {
++      RERROR("Unable to install SIGTERM handler.");
+       return;
+     }
+   }
+--- a/tunsafe_bsd.h	2018-12-16 22:36:36.000000000 +0000
++++ b/tunsafe_bsd.h	2019-01-11 02:23:35.000000000 +0000
+@@ -25,7 +25,7 @@
+   sigset_t orig_signal_mask_;
+ private:
+   static void SigAlrm(int sig);
+-  static void SigInt(int sig);
++  static void SigTerm(int sig);
+   bool *exit_flag_;
+   bool *sigalarm_flag_;
+ };

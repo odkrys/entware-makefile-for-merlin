@@ -1,0 +1,12 @@
+#!/bin/sh
+
+ENABLED=yes
+PROCS=tunsafe
+ARGS="start -d /opt/etc/tunsafe/client.conf"
+PREARGS="taskset -c 1"
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/opt/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /opt/etc/init.d/rc.func
+
+service restart_dnsmasq

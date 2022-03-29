@@ -1,0 +1,14 @@
+--- a/include/uapi/linux/types.h	2020-11-05 17:48:50.000000000 +0000
++++ b/include/uapi/linux/types.h	2020-11-05 17:48:39.000000000 +0000
+@@ -8,6 +8,11 @@
+ 
+ #include <linux/posix_types.h>
+ 
++#ifndef __kernel_long_t
++typedef long		__kernel_long_t;
++typedef unsigned long	__kernel_ulong_t;
++#endif
++
+ /*
+  * Below are truly Linux-specific types that should never collide with
+  * any application/library that wants linux/types.h.

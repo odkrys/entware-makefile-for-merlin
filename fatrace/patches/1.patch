@@ -1,0 +1,12 @@
+--- a/fatrace.c	2018-03-25 11:34:23.000000000 +0000
++++ b/fatrace.c	2019-07-07 12:56:46.000000000 +0000
+@@ -44,7 +44,8 @@
+  * http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/?id=1e2ee49f7
+  * O_LARGEFILE is usually 0, so hardcode it here
+  */
+-#define KERNEL_O_LARGEFILE 00100000
++//#define KERNEL_O_LARGEFILE 00100000
++#define KERNEL_O_LARGEFILE O_LARGEFILE
+ 
+ /* command line options */
+ static char* option_output = NULL;

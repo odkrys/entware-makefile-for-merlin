@@ -1,0 +1,15 @@
+#!/bin/sh
+
+export LC_ALL=C; unset LANGUAGE
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/sbin/plexmediaserver/lib
+export PLEX_MEDIA_SERVER_MAX_PLUGIN_PROCS=6
+export PLEX_MEDIA_SERVER_APPLICATION_SUPPORT_DIR=/opt/var/lib/plexmediaserver
+ulimit -s 3000
+ENABLED=yes
+PROCS=PlexMediaServer
+ARGS=""
+PREARGS=""
+DESC=$PROCS
+PATH=/opt/sbin:/opt/bin:/opt/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+. /opt/etc/init.d/rc.func
